@@ -61,7 +61,6 @@ if platform?(%w{ redhat centos fedora })
   gem_package "fpm" do
 	  gem_binary "/opt/chef/embedded/bin/gem"
 	    action :nothing
-	      version "0.4.33"
   end.run_action(:install)
 
   Gem.clear_paths
