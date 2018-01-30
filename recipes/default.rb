@@ -75,16 +75,10 @@ if platform?(%w{ redhat centos fedora })
 
   git "#{node[:statsd][:tmp_dir]}/build/usr/share/statsd" do
      repository node[:statsd][:repo]
-     reference statsd_version
-     action :sync
+     reference 'master'
+     action :checkout
      notifies :run, "execute[build rpm package]"
   end
-
-
-   # Fix the debian changelog file of the repo
-#   template "#{node[:statsd][:tmp_dir]}/statsd/debian/changelog" do
-#    source "changelog.erb"
-#   end
 
    execute "build rpm package" do
      command "fpm -s dir -t rpm -n statsd -a noarch -v #{node[:statsd][:package_version]} ."
