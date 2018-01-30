@@ -69,6 +69,10 @@ if platform?(%w{ redhat centos fedora })
     recursive true
   end
 
+  directory "/usr/share/statsd/scripts" do
+    recursive true
+  end
+
   include_recipe 'git'
 
   git '/etc/statsd/git' do
