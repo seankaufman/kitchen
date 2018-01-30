@@ -118,7 +118,15 @@ cookbook_file "/usr/share/statsd/scripts/start" do
   mode 0755
 end
 
-cookbook_file "/etc/init.d/statsd.conf" do
+directory '/etc/init' do
+  owner 'root'
+  group 'root'
+  mode '0755'
+  action :create
+  only_if { platform_family?('rhel') }
+end
+
+cookbook_file "/etc/init/statsd.conf" do
   source "upstart.conf"
   mode 0644
 end
