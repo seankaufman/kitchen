@@ -1,6 +1,6 @@
 [Unit]
 Description=statsd upstart service
-After=network.target
+Wants=network.target
 
 [Service]
 ExecStart=/bin/sudo -u statsd /usr/share/statsd/scripts/start

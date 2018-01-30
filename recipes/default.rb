@@ -21,7 +21,7 @@
 
 include_recipe "nodejs"
 
-statsd_version = node[:statsd][:sha]
+statsd_version = node['statsd']['sha']
 
 
 if platform?(%w{ debian })
@@ -75,9 +75,9 @@ if platform?(%w{ redhat centos fedora })
 
   include_recipe 'git'
 
-  git "#{node[:statsd][:tmp_dir]}/build/usr/share/statsd" do
-     repository node[:statsd][:repo]
-     reference statsd_version
+  git "#{node['statsd']['tmp_dir']}/build/usr/share/statsd" do
+     repository node['statsd']['repo']
+     revision node['statsd']['version']
      action :sync
      notifies :run, "execute[build rpm package]"
   end
@@ -137,7 +137,7 @@ when 'centos'
     source "statsd.service.erb"
     mode 0644
   end
-  service "statsd" do
+  service 'statsd' do
     provider Chef::Provider::Service::Systemd
     action [ :enable, :start ]
   end
