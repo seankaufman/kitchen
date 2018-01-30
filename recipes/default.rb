@@ -118,7 +118,7 @@ cookbook_file "/usr/share/statsd/scripts/start" do
   mode 0755
 end
 
-cookbook_file "/etc/init/statsd.conf" do
+cookbook_file "/etc/init.d/statsd.conf" do
   source "upstart.conf"
   mode 0644
 end
