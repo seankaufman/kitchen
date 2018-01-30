@@ -73,6 +73,8 @@ if platform?(%w{ redhat centos fedora })
 	  recursive true
   end
 
+  include_recipe 'git
+'
   git "#{node[:statsd][:tmp_dir]}/build/usr/share/statsd" do
      repository node[:statsd][:repo]
      reference 'master'
