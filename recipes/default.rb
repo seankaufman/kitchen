@@ -73,27 +73,28 @@ if platform?(%w{ redhat centos fedora })
 	  recursive true
   end
 
+  directory "/etc/statsd/git" do
+    recursive true
+  end
+
   include_recipe 'git'
 
-  git '/tmp/build/usr/share/statsd' do
+  git '/etc/statsd/git' do
     repository 'https://github.com/etsy/statsd.git'
     reference 'v0.6.0'
     action :sync
   end
 
-   execute "build rpm package" do
-     command "fpm -s dir -t rpm -n statsd -a noarch -v #{node[:statsd][:package_version]} ."
-     cwd "#{node[:statsd][:tmp_dir]}/build"
-     creates "#{node[:statsd][:tmp_dir]}/build/statsd-#{node[:statsd][:package_version]}-1.noarch.rpm"
-   end
+  execute "build rpm package" do
+    command "fpm -s dir -t rpm -n statsd -a noarch -v #{node[:statsd][:package_version]} ."
+    cwd '/etc/statsd/git'
+    creates "#{node[:statsd][:tmp_dir]}/build/statsd-#{node[:statsd][:package_version]}-1.noarch.rpm"
+  end
 
-   rpm_package "statsd" do
-     action :install
-     source "#{node[:statsd][:tmp_dir]}/build/statsd-#{node[:statsd][:package_version]}-1.noarch.rpm"
-   end
-  
-   directory "/etc/statsd" do
-   end
+  rpm_package "statsd" do
+    action :install
+    source "#{node[:statsd][:tmp_dir]}/build/statsd-#{node[:statsd][:package_version]}-1.noarch.rpm"
+  end
 end
 
 template "/etc/statsd/rdioConfig.js" do
