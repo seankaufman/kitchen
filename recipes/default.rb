@@ -65,14 +65,6 @@ if platform?(%w{ redhat centos fedora })
 
   Gem.clear_paths
 
-  package "rpmdevtools" do
-    action :install
-  end
-
-  directory "#{node[:statsd][:tmp_dir]}/build/usr/share/statsd/scripts" do
-	  recursive true
-  end
-
   directory "/etc/statsd/git" do
     recursive true
   end
@@ -83,17 +75,6 @@ if platform?(%w{ redhat centos fedora })
     repository 'https://github.com/etsy/statsd.git'
     reference 'v0.6.0'
     action :sync
-  end
-
-  execute "build rpm package" do
-    command "fpm -s dir -t rpm -n statsd -a noarch -v #{node[:statsd][:package_version]} ."
-    cwd '/etc/statsd/git'
-    creates "#{node[:statsd][:tmp_dir]}/build/statsd-#{node[:statsd][:package_version]}-1.noarch.rpm"
-  end
-
-  rpm_package "statsd" do
-    action :install
-    source "#{node[:statsd][:tmp_dir]}/build/statsd-#{node[:statsd][:package_version]}-1.noarch.rpm"
   end
 end
 
@@ -107,11 +88,6 @@ template "/etc/statsd/rdioConfig.js" do
   )
 
   notifies :restart, "service[statsd]"
-end
-
-cookbook_file "/usr/share/statsd/scripts/start" do
-  source "upstart.start"
-  mode 0755
 end
 
 user node[:statsd][:user] do
@@ -128,6 +104,11 @@ when 'ubuntu'
     mode 0644
   end
 
+  cookbook_file "/usr/share/statsd/scripts/start" do
+    source "upstart.start"
+    mode 0755
+  end
+
   service "statsd" do
     provider Chef::Provider::Service::Upstart
     action [ :enable, :start ]
@@ -137,6 +118,12 @@ when 'centos'
     source "statsd.service.erb"
     mode 0644
   end
+
+  cookbook_file "/usr/share/statsd/scripts/start" do
+    source "statsd_service.start"
+    mode 0755
+  end
+
   service 'statsd' do
     provider Chef::Provider::Service::Systemd
     action [ :enable, :start ]
