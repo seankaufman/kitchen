@@ -78,7 +78,7 @@ if platform?(%w{ redhat centos fedora })
   git "#{node['statsd']['tmp_dir']}/build/usr/share/statsd" do
      repository node['statsd']['repo']
      revision node['statsd']['version']
-     action :sync
+     action :checkout
      notifies :run, "execute[build rpm package]"
   end
 
