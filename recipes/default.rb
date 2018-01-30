@@ -17,60 +17,56 @@
 # limitations under the License.
 #
 
-
-
-include_recipe "nodejs"
+include_recipe 'nodejs'
 
 statsd_version = node['statsd']['sha']
 
+case node['platform']
+when 'ubuntu'
+  include_recipe 'build-essential'
+  include_recipe 'git'
 
-if platform?(%w{ debian ubuntu })
-
-  include_recipe "build-essential"
-  include_recipe "git"
-
-  git "#{node[:statsd][:tmp_dir]}/statsd" do
-    repository node[:statsd][:repo]
+  git "#{node['statsd']['tmp_dir']}/statsd" do
+    repository node['statsd']['repo']
     reference statsd_version
     action :sync
     notifies :run, "execute[build debian package]"
   end
 
-  package "debhelper"
+  package 'debhelper'
 
   # Fix the debian changelog file of the repo
-  template "#{node[:statsd][:tmp_dir]}/statsd/debian/changelog" do
-    source "changelog.erb"
+  template "#{node['statsd']['tmp_dir']}/statsd/debian/changelog" do
+    source 'changelog.erb'
   end
 
-  execute "build debian package" do
-    command "dpkg-buildpackage -us -uc"
-    cwd "#{node[:statsd][:tmp_dir]}/statsd"
-    creates "#{node[:statsd][:tmp_dir]}/statsd_#{node[:statsd][:package_version]}_all.deb"
+  execute 'build debian package' do
+    command 'dpkg-buildpackage -us -uc'
+    cwd "#{node['statsd']['tmp_dir']}/statsd"
+    creates "#{node['statsd']['tmp_dir']}/statsd_#{node['statsd']['package_version']}_all.deb"
   end
 
-  dpkg_package "statsd" do
+  dpkg_package 'statsd' do
     action :install
-    source "#{node[:statsd][:tmp_dir]}/statsd_#{node[:statsd][:package_version]}_all.deb"
+    source "#{node['statsd']['tmp_dir']}/statsd_#{node['statsd']['package_version']}_all.deb"
   end
-end
-
-if platform?(%w{ redhat centos fedora })
-
-#  chef_gem 'fpm'
-  gem_package "fpm" do
-	  gem_binary "/opt/chef/embedded/bin/gem"
-	    action :nothing
+when 'centos'
+  gem_package 'fpm' do
+	  gem_binary '/opt/chef/embedded/bin/gem'
+	  action :nothing
   end.run_action(:install)
 
   Gem.clear_paths
 
-  directory "/etc/statsd/git" do
-    recursive true
-  end
+  directory = %w(
+    /etc/statsd/git
+    /usr/share/statsd/scripts
+  )
 
-  directory "/usr/share/statsd/scripts" do
-    recursive true
+  directory.each do |dir|
+    directory dir do
+      recursive true
+    end
   end
 
   include_recipe 'git'
@@ -82,49 +78,49 @@ if platform?(%w{ redhat centos fedora })
   end
 end
 
-template "/etc/statsd/rdioConfig.js" do
-  source "rdioConfig.js.erb"
+template '/etc/statsd/rdioConfig.js' do
+  source 'rdioConfig.js.erb'
   mode 0644
   variables(
-    :port => node[:statsd][:port],
-    :graphitePort => node[:statsd][:graphite_port],
-    :graphiteHost => node[:statsd][:graphite_host]
+    :port => node['statsd']['port'],
+    :graphitePort => node['statsd']['graphite_port'],
+    :graphiteHost => node['statsd']['graphite_host']
   )
 
   notifies :restart, "service[statsd]"
 end
 
-user node[:statsd][:user] do
-  comment "statsd"
+user node['statsd']['user'] do
+  comment 'statsd'
   system true
-  shell "/bin/false"
-  home "/var/log/statsd"
+  shell '/bin/false'
+  home '/var/log/statsd'
 end
 
 case node['platform']
 when 'ubuntu'
-  cookbook_file "/etc/init/statsd.conf" do
-    source "upstart.conf"
+  cookbook_file '/etc/init/statsd.conf' do
+    source 'upstart.conf'
     mode 0644
   end
 
-  cookbook_file "/usr/share/statsd/scripts/start" do
-    source "upstart.start"
+  cookbook_file '/usr/share/statsd/scripts/start' do
+    source 'upstart.start'
     mode 0755
   end
 
-  service "statsd" do
+  service 'statsd' do
     provider Chef::Provider::Service::Upstart
     action [ :enable, :start ]
   end
 when 'centos'
-  cookbook_file "/etc/systemd/system/statsd.service" do
-    source "statsd.service.erb"
+  cookbook_file '/etc/systemd/system/statsd.service' do
+    source 'statsd.service.erb'
     mode 0644
   end
 
-  cookbook_file "/usr/share/statsd/scripts/start" do
-    source "statsd_service.start"
+  cookbook_file '/usr/share/statsd/scripts/start' do
+    source 'statsd_service.start'
     mode 0755
   end
 
