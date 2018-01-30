@@ -75,11 +75,10 @@ if platform?(%w{ redhat centos fedora })
 
   include_recipe 'git'
 
-  git "#{node['statsd']['tmp_dir']}/build/usr/share/statsd" do
-     repository node['statsd']['repo']
-     revision node['statsd']['version']
-     action :checkout
-     notifies :run, "execute[build rpm package]"
+  git '/tmp/build/usr/share/statsd' do
+    repository 'https://github.com/etsy/statsd.git'
+    reference 'v0.6.0'
+    action :sync
   end
 
    execute "build rpm package" do
