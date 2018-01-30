@@ -118,19 +118,6 @@ cookbook_file "/usr/share/statsd/scripts/start" do
   mode 0755
 end
 
-directory '/etc/init' do
-  owner 'root'
-  group 'root'
-  mode '0755'
-  action :create
-  only_if { platform_family?('rhel') }
-end
-
-cookbook_file "/etc/init/statsd.conf" do
-  source "upstart.conf"
-  mode 0644
-end
-
 user node[:statsd][:user] do
   comment "statsd"
   system true
@@ -140,11 +127,20 @@ end
 
 case node['platform']
 when 'ubuntu'
+  cookbook_file "/etc/init/statsd.conf" do
+    source "upstart.conf"
+    mode 0644
+  end
+
   service "statsd" do
     provider Chef::Provider::Service::Upstart
     action [ :enable, :start ]
   end
 when 'centos'
+  cookbook_file "/etc/systemd/system/statsd.service" do
+    source "statsd.service.erb"
+    mode 0644
+  end
   service "statsd" do
     provider Chef::Provider::Service::Systemd
     action [ :enable, :start ]

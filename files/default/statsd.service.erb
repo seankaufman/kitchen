@@ -1,0 +1,12 @@
+[Unit]
+Description=statsd upstart service
+After=network.target
+
+[Service]
+ExecStart=exec sudo -u statsd /usr/share/statsd/scripts/start
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
