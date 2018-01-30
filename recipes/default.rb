@@ -138,7 +138,15 @@ user node[:statsd][:user] do
   home "/var/log/statsd"
 end
 
-service "statsd" do
-  provider Chef::Provider::Service::Upstart
-  action [ :enable, :start ]
+case node['platform']
+when 'ubuntu'
+  service "statsd" do
+    provider Chef::Provider::Service::Upstart
+    action [ :enable, :start ]
+  end
+when 'centos'
+  service "statsd" do
+    provider Chef::Provider::Service::Systemd
+    action [ :enable, :start ]
+  end
 end
